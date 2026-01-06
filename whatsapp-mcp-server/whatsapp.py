@@ -85,36 +85,36 @@ def get_sender_name(sender_jid: str) -> str:
             return sender_jid
         
     except sqlite3.Error as e:
-        print(f"Database error while getting sender name: {e}")
+        print(f"Erro no banco de dados ao obter nome do remetente: {e}")
         return sender_jid
     finally:
         if 'conn' in locals():
             conn.close()
 
 def format_message(message: Message, show_chat_info: bool = True) -> None:
-    """Print a single message with consistent formatting."""
+    """Imprimir uma única mensagem com formatação consistente."""
     output = ""
     
     if show_chat_info and message.chat_name:
-        output += f"[{message.timestamp:%Y-%m-%d %H:%M:%S}] Chat: {message.chat_name} "
+        output += f"[{message.timestamp:%Y-%m-%d %H:%M:%S}] Conversa: {message.chat_name} "
     else:
         output += f"[{message.timestamp:%Y-%m-%d %H:%M:%S}] "
         
     content_prefix = ""
     if hasattr(message, 'media_type') and message.media_type:
-        content_prefix = f"[{message.media_type} - Message ID: {message.id} - Chat JID: {message.chat_jid}] "
+        content_prefix = f"[{message.media_type} - ID da Mensagem: {message.id} - JID da Conversa: {message.chat_jid}] "
     
     try:
-        sender_name = get_sender_name(message.sender) if not message.is_from_me else "Me"
-        output += f"From: {sender_name}: {content_prefix}{message.content}\n"
+        sender_name = get_sender_name(message.sender) if not message.is_from_me else "Eu"
+        output += f"De: {sender_name}: {content_prefix}{message.content}\n"
     except Exception as e:
-        print(f"Error formatting message: {e}")
+        print(f"Erro ao formatar mensagem: {e}")
     return output
 
 def format_messages_list(messages: List[Message], show_chat_info: bool = True) -> None:
     output = ""
     if not messages:
-        output += "No messages to display."
+        output += "Nenhuma mensagem para exibir."
         return output
     
     for message in messages:
@@ -133,7 +133,7 @@ def list_messages(
     context_before: int = 1,
     context_after: int = 1
 ) -> List[Message]:
-    """Get messages matching the specified criteria with optional context."""
+    """Obter mensagens que correspondem aos critérios especificados com contexto opcional."""
     try:
         conn = sqlite3.connect(MESSAGES_DB_PATH)
         cursor = conn.cursor()
@@ -149,7 +149,7 @@ def list_messages(
             try:
                 after = datetime.fromisoformat(after)
             except ValueError:
-                raise ValueError(f"Invalid date format for 'after': {after}. Please use ISO-8601 format.")
+                raise ValueError(f"Formato de data inválido para 'after': {after}. Por favor, use o formato ISO-8601.")
             
             where_clauses.append("messages.timestamp > ?")
             params.append(after)
@@ -158,7 +158,7 @@ def list_messages(
             try:
                 before = datetime.fromisoformat(before)
             except ValueError:
-                raise ValueError(f"Invalid date format for 'before': {before}. Please use ISO-8601 format.")
+                raise ValueError(f"Formato de data inválido para 'before': {before}. Por favor, use o formato ISO-8601.")
             
             where_clauses.append("messages.timestamp < ?")
             params.append(before)
@@ -216,7 +216,7 @@ def list_messages(
         return format_messages_list(result, show_chat_info=True)    
         
     except sqlite3.Error as e:
-        print(f"Database error: {e}")
+        print(f"Erro no banco de dados: {e}")
         return []
     finally:
         if 'conn' in locals():
@@ -228,7 +228,7 @@ def get_message_context(
     before: int = 5,
     after: int = 5
 ) -> MessageContext:
-    """Get context around a specific message."""
+    """Obter contexto ao redor de uma mensagem específica."""
     try:
         conn = sqlite3.connect(MESSAGES_DB_PATH)
         cursor = conn.cursor()
@@ -243,7 +243,7 @@ def get_message_context(
         msg_data = cursor.fetchone()
         
         if not msg_data:
-            raise ValueError(f"Message with ID {message_id} not found")
+            raise ValueError(f"Mensagem com ID {message_id} não encontrada")
             
         target_message = Message(
             timestamp=datetime.fromisoformat(msg_data[0]),
@@ -309,7 +309,7 @@ def get_message_context(
         )
         
     except sqlite3.Error as e:
-        print(f"Database error: {e}")
+        print(f"Erro no banco de dados: {e}")
         raise
     finally:
         if 'conn' in locals():
@@ -323,7 +323,7 @@ def list_chats(
     include_last_message: bool = True,
     sort_by: str = "last_active"
 ) -> List[Chat]:
-    """Get chats matching the specified criteria."""
+    """Obter conversas que correspondem aos critérios especificados."""
     try:
         conn = sqlite3.connect(MESSAGES_DB_PATH)
         cursor = conn.cursor()
@@ -383,7 +383,7 @@ def list_chats(
         return result
         
     except sqlite3.Error as e:
-        print(f"Database error: {e}")
+        print(f"Erro no banco de dados: {e}")
         return []
     finally:
         if 'conn' in locals():
@@ -391,7 +391,7 @@ def list_chats(
 
 
 def search_contacts(query: str) -> List[Contact]:
-    """Search contacts by name or phone number."""
+    """Buscar contatos por nome ou número de telefone."""
     try:
         conn = sqlite3.connect(MESSAGES_DB_PATH)
         cursor = conn.cursor()
@@ -425,7 +425,7 @@ def search_contacts(query: str) -> List[Contact]:
         return result
         
     except sqlite3.Error as e:
-        print(f"Database error: {e}")
+        print(f"Erro no banco de dados: {e}")
         return []
     finally:
         if 'conn' in locals():
@@ -433,12 +433,12 @@ def search_contacts(query: str) -> List[Contact]:
 
 
 def get_contact_chats(jid: str, limit: int = 20, page: int = 0) -> List[Chat]:
-    """Get all chats involving the contact.
+    """Obter todas as conversas envolvendo o contato.
     
     Args:
-        jid: The contact's JID to search for
-        limit: Maximum number of chats to return (default 20)
-        page: Page number for pagination (default 0)
+        jid: O JID do contato a ser pesquisado
+        limit: Número máximo de conversas a retornar (padrão 20)
+        page: Número da página para paginação (padrão 0)
     """
     try:
         conn = sqlite3.connect(MESSAGES_DB_PATH)
@@ -476,7 +476,7 @@ def get_contact_chats(jid: str, limit: int = 20, page: int = 0) -> List[Chat]:
         return result
         
     except sqlite3.Error as e:
-        print(f"Database error: {e}")
+        print(f"Erro no banco de dados: {e}")
         return []
     finally:
         if 'conn' in locals():
@@ -484,7 +484,7 @@ def get_contact_chats(jid: str, limit: int = 20, page: int = 0) -> List[Chat]:
 
 
 def get_last_interaction(jid: str) -> str:
-    """Get most recent message involving the contact."""
+    """Obter a mensagem mais recente envolvendo o contato."""
     try:
         conn = sqlite3.connect(MESSAGES_DB_PATH)
         cursor = conn.cursor()
@@ -525,7 +525,7 @@ def get_last_interaction(jid: str) -> str:
         return format_message(message)
         
     except sqlite3.Error as e:
-        print(f"Database error: {e}")
+        print(f"Erro no banco de dados: {e}")
         return None
     finally:
         if 'conn' in locals():
@@ -533,7 +533,7 @@ def get_last_interaction(jid: str) -> str:
 
 
 def get_chat(chat_jid: str, include_last_message: bool = True) -> Optional[Chat]:
-    """Get chat metadata by JID."""
+    """Obter metadados da conversa por JID."""
     try:
         conn = sqlite3.connect(MESSAGES_DB_PATH)
         cursor = conn.cursor()
@@ -573,7 +573,7 @@ def get_chat(chat_jid: str, include_last_message: bool = True) -> Optional[Chat]
         )
         
     except sqlite3.Error as e:
-        print(f"Database error: {e}")
+        print(f"Erro no banco de dados: {e}")
         return None
     finally:
         if 'conn' in locals():
@@ -581,7 +581,7 @@ def get_chat(chat_jid: str, include_last_message: bool = True) -> Optional[Chat]
 
 
 def get_direct_chat_by_contact(sender_phone_number: str) -> Optional[Chat]:
-    """Get chat metadata by sender phone number."""
+    """Obter metadados da conversa por número de telefone do remetente."""
     try:
         conn = sqlite3.connect(MESSAGES_DB_PATH)
         cursor = conn.cursor()
@@ -616,7 +616,7 @@ def get_direct_chat_by_contact(sender_phone_number: str) -> Optional[Chat]:
         )
         
     except sqlite3.Error as e:
-        print(f"Database error: {e}")
+        print(f"Erro no banco de dados: {e}")
         return None
     finally:
         if 'conn' in locals():
@@ -626,7 +626,7 @@ def send_message(recipient: str, message: str) -> Tuple[bool, str]:
     try:
         # Validate input
         if not recipient:
-            return False, "Recipient must be provided"
+            return False, "O destinatário deve ser fornecido"
         
         url = f"{WHATSAPP_API_BASE_URL}/send"
         payload = {
@@ -639,28 +639,28 @@ def send_message(recipient: str, message: str) -> Tuple[bool, str]:
         # Check if the request was successful
         if response.status_code == 200:
             result = response.json()
-            return result.get("success", False), result.get("message", "Unknown response")
+            return result.get("success", False), result.get("message", "Resposta desconhecida")
         else:
-            return False, f"Error: HTTP {response.status_code} - {response.text}"
+            return False, f"Erro: HTTP {response.status_code} - {response.text}"
             
     except requests.RequestException as e:
-        return False, f"Request error: {str(e)}"
+        return False, f"Erro na requisição: {str(e)}"
     except json.JSONDecodeError:
-        return False, f"Error parsing response: {response.text}"
+        return False, f"Erro ao analisar resposta: {response.text}"
     except Exception as e:
-        return False, f"Unexpected error: {str(e)}"
+        return False, f"Erro inesperado: {str(e)}"
 
 def send_file(recipient: str, media_path: str) -> Tuple[bool, str]:
     try:
         # Validate input
         if not recipient:
-            return False, "Recipient must be provided"
+            return False, "O destinatário deve ser fornecido"
         
         if not media_path:
-            return False, "Media path must be provided"
+            return False, "O caminho da mídia deve ser fornecido"
         
         if not os.path.isfile(media_path):
-            return False, f"Media file not found: {media_path}"
+            return False, f"Arquivo de mídia não encontrado: {media_path}"
         
         url = f"{WHATSAPP_API_BASE_URL}/send"
         payload = {
@@ -673,34 +673,34 @@ def send_file(recipient: str, media_path: str) -> Tuple[bool, str]:
         # Check if the request was successful
         if response.status_code == 200:
             result = response.json()
-            return result.get("success", False), result.get("message", "Unknown response")
+            return result.get("success", False), result.get("message", "Resposta desconhecida")
         else:
-            return False, f"Error: HTTP {response.status_code} - {response.text}"
+            return False, f"Erro: HTTP {response.status_code} - {response.text}"
             
     except requests.RequestException as e:
-        return False, f"Request error: {str(e)}"
+        return False, f"Erro na requisição: {str(e)}"
     except json.JSONDecodeError:
-        return False, f"Error parsing response: {response.text}"
+        return False, f"Erro ao analisar resposta: {response.text}"
     except Exception as e:
-        return False, f"Unexpected error: {str(e)}"
+        return False, f"Erro inesperado: {str(e)}"
 
 def send_audio_message(recipient: str, media_path: str) -> Tuple[bool, str]:
     try:
         # Validate input
         if not recipient:
-            return False, "Recipient must be provided"
+            return False, "O destinatário deve ser fornecido"
         
         if not media_path:
-            return False, "Media path must be provided"
+            return False, "O caminho da mídia deve ser fornecido"
         
         if not os.path.isfile(media_path):
-            return False, f"Media file not found: {media_path}"
+            return False, f"Arquivo de mídia não encontrado: {media_path}"
 
         if not media_path.endswith(".ogg"):
             try:
                 media_path = audio.convert_to_opus_ogg_temp(media_path)
             except Exception as e:
-                return False, f"Error converting file to opus ogg. You likely need to install ffmpeg: {str(e)}"
+                return False, f"Erro ao converter arquivo para opus ogg. Você provavelmente precisa instalar o ffmpeg: {str(e)}"
         
         url = f"{WHATSAPP_API_BASE_URL}/send"
         payload = {
@@ -713,26 +713,26 @@ def send_audio_message(recipient: str, media_path: str) -> Tuple[bool, str]:
         # Check if the request was successful
         if response.status_code == 200:
             result = response.json()
-            return result.get("success", False), result.get("message", "Unknown response")
+            return result.get("success", False), result.get("message", "Resposta desconhecida")
         else:
-            return False, f"Error: HTTP {response.status_code} - {response.text}"
+            return False, f"Erro: HTTP {response.status_code} - {response.text}"
             
     except requests.RequestException as e:
-        return False, f"Request error: {str(e)}"
+        return False, f"Erro na requisição: {str(e)}"
     except json.JSONDecodeError:
-        return False, f"Error parsing response: {response.text}"
+        return False, f"Erro ao analisar resposta: {response.text}"
     except Exception as e:
-        return False, f"Unexpected error: {str(e)}"
+        return False, f"Erro inesperado: {str(e)}"
 
 def download_media(message_id: str, chat_jid: str) -> Optional[str]:
-    """Download media from a message and return the local file path.
+    """Baixar mídia de uma mensagem e retornar o caminho do arquivo local.
     
     Args:
-        message_id: The ID of the message containing the media
-        chat_jid: The JID of the chat containing the message
+        message_id: O ID da mensagem contendo a mídia
+        chat_jid: O JID da conversa contendo a mensagem
     
     Returns:
-        The local file path if download was successful, None otherwise
+        O caminho do arquivo local se o download foi bem-sucedido, None caso contrário
     """
     try:
         url = f"{WHATSAPP_API_BASE_URL}/download"
@@ -747,21 +747,21 @@ def download_media(message_id: str, chat_jid: str) -> Optional[str]:
             result = response.json()
             if result.get("success", False):
                 path = result.get("path")
-                print(f"Media downloaded successfully: {path}")
+                print(f"Mídia baixada com sucesso: {path}")
                 return path
             else:
-                print(f"Download failed: {result.get('message', 'Unknown error')}")
+                print(f"Falha no download: {result.get('message', 'Erro desconhecido')}")
                 return None
         else:
-            print(f"Error: HTTP {response.status_code} - {response.text}")
+            print(f"Erro: HTTP {response.status_code} - {response.text}")
             return None
             
     except requests.RequestException as e:
-        print(f"Request error: {str(e)}")
+        print(f"Erro na requisição: {str(e)}")
         return None
     except json.JSONDecodeError:
-        print(f"Error parsing response: {response.text}")
+        print(f"Erro ao analisar resposta: {response.text}")
         return None
     except Exception as e:
-        print(f"Unexpected error: {str(e)}")
+        print(f"Erro inesperado: {str(e)}")
         return None
