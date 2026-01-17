@@ -1,0 +1,34 @@
+# Exclude Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Exclude virtual environments
+venv/
+env/
+ENV/
+
+# Exclude git files
+.git
+.gitignore
+
+# Exclude log files
+*.log
+
+# Exclude IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Exclude OS files
+.DS_Store
+Thumbs.db
+
+# Exclude database files
+*.db
+*.db-shm
+*.db-wal

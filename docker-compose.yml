@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  whatsapp-bridge:
+    build:
+      context: ./whatsapp-bridge
+      dockerfile: Dockerfile
+    container_name: whatsapp-bridge
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount store directory for persistent data (sessions and messages)
+      - whatsapp-bridge-data:/app/store
+    restart: unless-stopped
+    networks:
+      - whatsapp-network
+
+  whatsapp-mcp-server:
+    build:
+      context: ./whatsapp-mcp-server
+      dockerfile: Dockerfile
+    container_name: whatsapp-mcp-server
+    depends_on:
+      - whatsapp-bridge
+    environment:
+      - WHATSAPP_API_BASE_URL=http://whatsapp-bridge:8080/api
+      - MESSAGES_DB_PATH=/data/messages.db
+    volumes:
+      # Mount the same data volume to access the database
+      - whatsapp-bridge-data:/data
+    restart: unless-stopped
+    networks:
+      - whatsapp-network
+    # MCP server communicates via stdio, so no port exposure needed
+    stdin_open: true
+    tty: true
+
+networks:
+  whatsapp-network:
+    driver: bridge
+
+volumes:
+  whatsapp-bridge-data:
+    driver: local
