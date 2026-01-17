@@ -1,0 +1,23 @@
+# Exclude store directory (will be mounted as volume)
+store/
+*.db
+*.db-shm
+*.db-wal
+
+# Exclude git files
+.git
+.gitignore
+
+# Exclude log files
+*.log
+
+# Exclude IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Exclude OS files
+.DS_Store
+Thumbs.db

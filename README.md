@@ -16,7 +16,100 @@ Aqui está um exemplo do que você pode fazer quando estiver conectado ao Claude
 
 ## Instalação
 
-### Pré-requisitos
+Existem duas formas de instalar o servidor MCP WhatsApp:
+
+### Opção 1: Instalação com Docker (Recomendado)
+
+Docker facilita a instalação e garante que você tenha uma nova instância limpa para cada uso.
+
+#### Pré-requisitos
+
+- Docker
+- Docker Compose
+- Aplicativo Anthropic Claude Desktop (ou Cursor)
+
+#### Passos
+
+1. **Clone este repositório**
+
+   ```bash
+   git clone https://github.com/lharries/whatsapp-mcp.git
+   cd whatsapp-mcp
+   ```
+
+2. **Inicie os serviços com Docker Compose**
+
+   ```bash
+   docker-compose up -d
+   ```
+
+   Na primeira vez que executar, você precisará ver os logs para escanear o código QR:
+
+   ```bash
+   docker-compose logs -f whatsapp-bridge
+   ```
+
+   Escaneie o código QR com seu aplicativo móvel do WhatsApp para autenticar.
+
+3. **Conecte-se ao servidor MCP**
+
+   Para **Claude**, adicione a seguinte configuração ao seu `claude_desktop_config.json` em:
+
+   ```
+   ~/Library/Application Support/Claude/claude_desktop_config.json
+   ```
+
+   Configuração:
+
+   ```json
+   {
+     "mcpServers": {
+       "whatsapp": {
+         "command": "docker",
+         "args": [
+           "exec",
+           "-i",
+           "whatsapp-mcp-server",
+           "uv",
+           "run",
+           "main.py"
+         ]
+       }
+     }
+   }
+   ```
+
+   Para **Cursor**, salve a mesma configuração como `mcp.json` no diretório:
+
+   ```
+   ~/.cursor/mcp.json
+   ```
+
+4. **Reinicie o Claude Desktop / Cursor**
+
+   Abra o Claude Desktop e você deverá ver o WhatsApp como uma integração disponível.
+
+#### Gerenciamento dos containers
+
+Para parar os serviços:
+```bash
+docker-compose down
+```
+
+Para ver os logs:
+```bash
+docker-compose logs -f
+```
+
+Para reiniciar uma nova instância (limpar dados):
+```bash
+docker-compose down -v
+docker-compose up -d
+```
+
+### Opção 2: Instalação Manual
+
+#### Pré-requisitos
 
 - Go
 - Python 3.6+
@@ -24,7 +117,7 @@ Aqui está um exemplo do que você pode fazer quando estiver conectado ao Claude
 - UV (gerenciador de pacotes Python), instale com `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - FFmpeg (_opcional_) - Necessário apenas para mensagens de áudio. Se você quiser enviar arquivos de áudio como mensagens de voz reproduzíveis do WhatsApp, eles devem estar no formato `.ogg` Opus. Com o FFmpeg instalado, o servidor MCP converterá automaticamente arquivos de áudio não-Opus. Sem o FFmpeg, você ainda pode enviar arquivos de áudio brutos usando a ferramenta `send_file`.
 
-### Passos
+#### Passos
 
 1. **Clone este repositório**
 
